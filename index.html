@@ -28,8 +28,13 @@
 			const geometry = new THREE.BoxGeometry();
 			const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
 			const cube = new THREE.Mesh( geometry, material );
-
-			const sphere = new THREE.Mesh( new THREE.SphereGeometry( 500, 60, 40 ).scale(-1, 1, 1), new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load( 'textures/CreativeCommons360.jpg'), side: THREE.DoubleSide }) );
+			
+			// Parts of sphere to hold environment texture
+			sphereTexture = new THREE.TextureLoader().load( 'textures/brightInteriorSample.jpeg');
+			sphereMesh = new THREE.SphereGeometry( 500, 60, 40 ).scale(-1, 1, 1);
+			
+			// instantiate sphere with texture showing on inside of mesh
+			const sphere = new THREE.Mesh( sphereMesh, new THREE.MeshBasicMaterial({ map: sphereTexture, side: THREE.DoubleSide }) );
 
 			
 			sphere.position.set( 0, 0, 0 );
@@ -46,6 +51,7 @@
 			// sphere.rotation.y += .008;
 			camera.rotation.y += .002;
 			
+			// Render in the scene	
 			requestAnimationFrame( animate );
 			renderer.render( scene, camera );
 
@@ -53,7 +59,7 @@
 			}
 			animate();
 
-camera.position.z = 5;
+			camera.position.z = 5;
 		</script>
 	</body>
 </html>
