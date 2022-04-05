@@ -2,64 +2,156 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<title>360 Degree Image Sample Site</title>
+		<title>Sample Three.js Test</title>
 		<style>
 			body { margin: 0; }
 		</style>
 	</head>
 	<body>
-		<script src="js/three.js"></script>
-		<script>
+		<!-- <h1>Test header</h1> -->
+		<script type="module" src="js/three.js"></script>
+		<!-- <script src="js/OrbitControls.js" type="module"></script> -->
+		<script type="module">
+
+			// import * as Three from 'three'
+			import * as THREE from '/js/three.js' // SWAPPED CODE W THREE.MODULE.JS
+			import * as OrbitControls from '/js/OrbitControls.js';
+
+			// const OrbitControls = oc(Three)
+
+			// https://discoverthreejs.com/book/introduction/get-threejs/
+			// Using three.module.js
 
 			// https://threejs.org/manual/#en/responsive
 			// Make website & canvas responsive
 			// Create single resizable container for the three.js render
+			var scene, renderer, camera;
+			var controls;
 
-			const scene = new THREE.Scene();
-			const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+			var cube, sphere, sphereAlt;
+			var cameraState;
 
-			camera.target = new THREE.Vector3( 0, 0, 0 );
-			camera.position.set( 0, 0, 0 );
-
-			const renderer = new THREE.WebGLRenderer();
-			renderer.setSize( window.innerWidth, window.innerHeight );
-			document.body.appendChild( renderer.domElement );
-
-			const geometry = new THREE.BoxGeometry();
-			const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
-			const cube = new THREE.Mesh( geometry, material );
-			
-			// Parts of sphere to hold environment texture
-			sphereTexture = new THREE.TextureLoader().load( 'textures/brightInteriorSample.jpeg');
-			sphereMesh = new THREE.SphereGeometry( 500, 60, 40 ).scale(-1, 1, 1);
-			
-			// instantiate sphere with texture showing on inside of mesh
-			const sphere = new THREE.Mesh( sphereMesh, new THREE.MeshBasicMaterial({ map: sphereTexture, side: THREE.DoubleSide }) );
-
-			
-			sphere.position.set( 0, 0, 0 );
-
-			scene.add( cube );
-			scene.add(sphere);
-			sphere.position.set( -5, 0, -5 )
-
-			camera.position.z = 0;
-
-			function animate() {
-			cube.rotation.z += .1;
-			cube.rotation.y += .1;
-			// sphere.rotation.y += .008;
-			camera.rotation.y += .002;
-			
-			// Render in the scene	
-			requestAnimationFrame( animate );
-			renderer.render( scene, camera );
-
-			
-			}
+			init();
 			animate();
 
-			camera.position.z = 5;
+			function init() {
+				scene = new THREE.Scene();
+				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+				camera.target = new THREE.Vector3( 0, 0, 0 );
+				camera.position.set( 0, 0, 0 );
+				camera.lookAt(200, 400, 0);
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				document.body.appendChild( renderer.domElement );
+
+				controls = new OrbitControls.OrbitControls(camera, renderer.domElement);
+				
+				/*
+				controls.mouseButtons = {
+					LEFT: THREE.MOUSE.ROTATE,
+					MIDDLE: THREE.MOUSE.DOLLY,
+					RIGHT: THREE.MOUSE.PAN
+				}
+				*/ 
+
+				const geometry = new THREE.BoxGeometry();
+				const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
+				cube = new THREE.Mesh( geometry, material );
+
+
+				// @TODO:
+				// 		 Make this into an array of all the sphere objects
+				//		 So we can use a loop to apply all the locations and whatnot
+				sphere = new THREE.Mesh( new THREE.SphereGeometry( 500, 60, 40 ).scale(-1, 1, 1), 
+					new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load( 'textures/XtremeLivingRoom.jpg'), 
+					side: THREE.DoubleSide, 
+					wireframe:false}) );
+
+				
+				sphereAlt = new THREE.Mesh( new THREE.SphereGeometry( 500, 60, 40 ).scale(-1, 1, 1), 
+					new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load( 'textures/XtremeUpstairsLanding.jpg'), 
+					side: THREE.DoubleSide, 
+					wireframe:false}) );
+
+
+				sphere.position.set( 0, 0, 0 );
+				// DELETE THIS ONCE THE ARRAYS ARE SET UP
+				sphereAlt.position.set( 0, 0, 0 );
+				sphereAlt.visible = false;
+
+				// scene.add(cube);
+				scene.add(sphere);
+				scene.add(sphereAlt);
+
+				sphere.position.set( -5, 0, -5 );
+				sphereAlt.position.set( -5, 0, -5);
+
+				camera.position.z = 0;
+				controls.autoRotate = true;
+				controls.autoRotateSpeed = 1;
+				controls.target = new THREE.Vector3(.5, .5, .5);
+
+				controls.maxPolarAngle = 2;
+				controls.minPolarAngle = 1;
+
+				controls.listenToKeyEvents( window );
+				// controls.update();
+
+				// int to keep track of which index the material is set to 
+				cameraState = 0;
+			}
+			function animate() {
+				requestAnimationFrame( animate );
+				// cube.rotation.z += .1;
+				// cube.rotation.y += .1;
+				// sphere.rotation.y += .002;
+				// camera.rotation.y += .002;
+				
+				controls.update();
+				controls.autoRotate = true;
+				
+				/*
+				// THIS METHOD NEEDS TO BE CHANGED, IT LEAVES A BLACK SCREEN FOR A FEW SECONDS
+				if( camera.rotation.y >= 0 && cameraState == 0) {
+					sphere.material = new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load( 'textures/hero-360.jpg'), side: THREE.DoubleSide });
+					cameraState++;
+				}
+				
+				if (camera.rotation.y < 0 && cameraState == 1) {
+					sphere.material = new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load( 'textures/RoyalSuite.jpg'), side: THREE.DoubleSide });
+					cameraState--;
+				}
+				*/
+
+
+				// IN THE FUTURE, BASE ROTATION OFF OF RADIANS/NUMBER OF SCENES
+				// ALTERNATIVELY EXCLUSIVELY USE TIME
+				if (camera.rotation.y < 0 && cameraState == 1) {
+					sphere.visible = false;
+					sphereAlt.visible = true;
+					cameraState = 0;
+				}
+
+				if( camera.rotation.y >= 0 && cameraState == 0) {
+					sphere.visible = true;
+					sphereAlt.visible = false;
+					cameraState = 1;
+				}
+
+
+
+				console.log(camera.rotation.y + "  \nCamera State: " + cameraState);
+
+				renderer.render( scene, camera );
+
+				// console.log(controls.getPolarAngle());
+			}
+
+			
+
+			// camera.position.z = 5;
 		</script>
 	</body>
 </html>
